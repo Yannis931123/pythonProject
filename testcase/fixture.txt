@@ -1,0 +1,86 @@
+这段代码定义了一个名为 `fixture` 的装饰器，它是用于 `pytest` 测试框架中的一个重要特性。
+`fixture` 装饰器允许开发者定义可重用的资源，这些资源可以在测试函数执行前后被设置和清理。
+这些资源可以是数据库连接、临时文件、网络连接等。
+
+装饰器接受多个参数，用于控制 `fixture` 的行为：
+
+- `fixture_function`: 要装饰的函数，如果直接传递了一个函数，则立即返回装饰后的函数。
+- `scope`: 定义了 `fixture` 的作用域，可以是 `"function"`（默认）、`"class"`、`"module"`、`"package"` 或 `"session"`。作用域决定了 `fixture` 在测试中的共享程度。
+- `params`: 一个可选的参数列表，它会导致 `fixture` 函数被多次调用，每次使用不同的参数。
+- `autouse`: 如果为 `True`，则该 `fixture` 会自动应用于所有能看到它的测试，无需显式引用。
+- `ids`: 与 `params` 相对应的 ID 序列，用于标识测试 ID。如果没有提供，将自动生成。
+- `name`: `fixture` 的名称，默认为装饰函数的名称。
+
+在装饰器内部，首先创建了一个 `FixtureFunctionMarker` 对象，它包含了所有传递给 `fixture` 装饰器的参数。然后，根据是否提供了 `fixture_function` 参数，决定是直接返回装饰后的函数还是返回 `FixtureFunctionMarker` 对象。
+
+这个装饰器的一个关键特性是它可以接受参数，这意味着你可以定义一个 `fixture` 并为其指定不同的行为，而不需要为每种行为编写不同的 `fixture` 函数。
+
+最后，需要注意的是，如果 `fixture` 在定义它的同一个模块中被使用，那么装饰函数的名称可能会被请求 `fixture` 的函数参数所遮蔽。
+
+解决这个问题的一种方法是将装饰的函数命名为 `fixture_<fixturename>`，然后使用 `@pytest.fixture(name='<fixturename>')` 来指定 `fixture` 的名称。
+
+这段代码是 `pytest` 框架的核心部分，对于理解和使用 `pytest` 的 `fixture` 功能至关重要。
+
+要具体使用 `@pytest.fixture` 装饰器，你需要按照以下步骤操作：
+
+1. **安装 pytest**:
+   如果你还没有安装 `pytest`，可以通过 pip 安装它：
+   ```bash
+   pip install pytest
+   ```
+
+2. **定义 fixture**:
+   在你的测试文件中，使用 `@pytest.fixture` 装饰器定义一个或多个 fixture 函数。例如，定义一个名为 `database` 的 fixture，它在每个测试函数之前建立数据库连接，在测试结束后关闭连接。
+
+   ```python
+   import pytest
+
+   @pytest.fixture
+   def database():
+       # 建立数据库连接
+       db = ...
+       yield db  # 提供数据库连接给测试函数
+       # 测试结束后关闭数据库连接
+       db.close()
+   ```
+
+3. **在测试函数中使用 fixture**:
+   在测试函数中，你可以将 fixture 名称作为参数传递给测试函数，pytest 会自动调用相应的 fixture 函数并传递其返回值。
+
+   ```python
+   def test_user_database(database):
+       # 使用 database 进行测试
+       ...
+   ```
+
+4. **运行测试**:
+   使用 `pytest` 命令运行你的测试文件。pytest 会自动发现并运行所有以 `test_` 开头或者以 `_test` 结尾的函数。
+
+   ```bash
+   pytest your_test_file.py
+   ```
+
+5. **使用 fixture 的参数化**:
+   如果你想对一个 fixture 进行参数化测试，可以使用 `params` 参数。
+
+   ```python
+   @pytest.fixture(params=[1, 2, 3])
+   def parametrized_fixture(request):
+       return request.param
+
+   def test_with_params(parametrized_fixture):
+       # 这个测试将会运行三次，每次使用不同的参数
+       ...
+   ```
+
+6. **使用 fixture 的作用域**:
+   你可以指定 fixture 的作用域，以控制它在测试中的共享程度。
+
+   ```python
+   @pytest.fixture(scope="module")
+   def module_level_fixture():
+       # 这个 fixture 在模块级别共享
+       ...
+   ```
+
+通过这些步骤，你可以利用 `pytest` 的 fixture 功能来设置和清理测试环境，从而使你的测试代码更加干净、可维护和可读。
