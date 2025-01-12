@@ -1,9 +1,10 @@
-#实现一个基本的二叉搜索树
+# 实现一个基本的二叉搜索树
 class TreeNode:
     def __init__(self, key):
         self.left = None
         self.right = None
         self.val = key
+
 
 class BinarySearchTree:
     def __init__(self):
